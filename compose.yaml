@@ -1,0 +1,43 @@
+services:
+  app:
+    build:
+      context: ./backend
+      dockerfile: dockerfile
+    container_name: creditflow
+    working_dir: /var/www
+    volumes:
+      - ./backend:/var/www
+    ports:
+      - "8000:8000"
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: creditflow
+      DB_USERNAME: creditflow
+      DB_PASSWORD: creditflow_local
+      SESSION_DRIVER: file
+      CACHE_STORE: file
+      QUEUE_CONNECTION: sync
+    depends_on:
+      db:
+        condition: service_healthy
+    command: php artisan serve --host=0.0.0.0 --port=8000
+
+  db:
+    image: postgres:16-alpine
+    container_name: creditflow-db
+    environment:
+      POSTGRES_DB: creditflow
+      POSTGRES_USER: creditflow
+      POSTGRES_PASSWORD: creditflow_local
+    volumes:
+      - creditflow_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U creditflow -d creditflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  creditflow_postgres_data:
