@@ -6,12 +6,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libcurl4-openssl-dev \
     libonig-dev \
     libpq-dev \
+    libsqlite3-dev \
     libxml2-dev \
     libzip-dev \
     && docker-php-ext-install -j"$(nproc)" \
         curl \
         mbstring \
         pdo_pgsql \
+        pdo_sqlite \
         xml \
         zip \
     && rm -rf /var/lib/apt/lists/*
