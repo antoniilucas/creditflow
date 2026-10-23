@@ -1,8 +1,7 @@
 # CreditFlow
 
 API REST para gestao de contas e movimentacoes de credito. O backend usa Laravel,
-PHP 8.4 e PostgreSQL. O frontend Vue sera desenvolvido depois que o backend estiver
-concluido.
+PHP 8.4 e PostgreSQL. O frontend opcional usa Vue 3 e fica na pasta `frontend`.
 
 ## Requisitos
 
@@ -13,9 +12,12 @@ PHP e Composer rodam dentro do container e nao precisam ser instalados no Window
 
 ## Iniciar o backend
 
-Na primeira execucao, crie o arquivo local de ambiente e suba os containers:
+Na primeira execucao, crie os arquivos locais de ambiente. Defina uma senha local
+em `CREDITFLOW_DB_PASSWORD` no `.env` da raiz. Para manter um volume PostgreSQL ja
+existente, use a senha configurada quando esse banco foi inicializado.
 
 ```bat
+copy .env.example .env
 copy backend\.env.example backend\.env
 docker compose up -d --build
 docker compose exec app php artisan key:generate
@@ -23,9 +25,9 @@ docker compose restart app
 docker compose exec app php artisan migrate
 ```
 
-Se `backend/.env` ja existir, nao copie o exemplo novamente: isso preserva sua chave
-local. A API fica em `http://localhost:8000`; o PostgreSQL fica no servico `db` dentro
-do Docker Compose.
+Se os arquivos locais ja existirem, nao copie os exemplos novamente: isso preserva
+sua chave local e a senha do banco. Os arquivos `.env` sao ignorados pelo Git. A API
+fica em `http://localhost:8000`; o PostgreSQL fica no servico `db` dentro do Compose.
 
 Confira os containers e as migrations:
 
@@ -173,6 +175,30 @@ envie ao mesmo tempo dois debitos de R$ 8,00 com chaves diferentes. Um deve reto
 ## Decisoes tecnicas e uso de IA
 
 As escolhas de arquitetura estao em [DECISOES.md](DECISOES.md). IA generativa foi
-usada como apoio de mentoria para planejar e escrever partes do codigo e da
-documentacao. A validacao funcional e os commits ficam a cargo do responsavel pelo
+usada como apoio de mentoria para planejar, implementar, revisar e documentar o
+projeto. A ferramenta utilizada foi OpenAI Codex/ChatGPT.
+
+Exemplo de codigo corrigido com esse apoio: a primeira versao da migration que
+preenche `responsible_user_id` usava uma atualizacao com `JOIN` que o PostgreSQL
+rejeitou. A versao corrigida percorre os lancamentos em lotes e atualiza os IDs
+agrupados pelo usuario responsavel:
+
+```php
+DB::table('transactions')
+    ->join('accounts', 'transactions.account_id', '=', 'accounts.id')
+    ->select([
+        'transactions.id as transaction_id',
+        'accounts.user_id as responsible_user_id',
+    ])
+    ->chunkById(500, function ($transactions): void {
+        foreach ($transactions->groupBy('responsible_user_id') as $userId => $rows) {
+            DB::table('transactions')
+                ->whereIn('id', $rows->pluck('transaction_id'))
+                ->update(['responsible_user_id' => $userId]);
+        }
+    }, 'transactions.id', 'transaction_id');
+```
+
+Essa correcao foi verificada ao executar a migration no PostgreSQL. A validacao
+final do desafio e a explicacao das decisoes tecnicas cabem ao responsavel pelo
 projeto.

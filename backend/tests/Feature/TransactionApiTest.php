@@ -194,9 +194,9 @@ class TransactionApiTest extends TestCase
 
         $this->getJson('/api/transactions?type=debit&date_from='.now()->toDateString().'&per_page=1')
             ->assertOk()
-            ->assertJsonPath('meta.total', 2)
-            ->assertJsonPath('meta.per_page', 1)
-            ->assertJsonPath('meta.last_page', 2)
+            ->assertJsonPath('total', 2)
+            ->assertJsonPath('per_page', 1)
+            ->assertJsonPath('last_page', 2)
             ->assertJsonPath('data.0.type', 'debit')
             ->assertJsonPath('data.0.responsible_user_id', $this->user->id);
 

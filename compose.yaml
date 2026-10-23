@@ -15,7 +15,7 @@ services:
       DB_PORT: 5432
       DB_DATABASE: creditflow
       DB_USERNAME: creditflow
-      DB_PASSWORD: creditflow_local
+      DB_PASSWORD: ${CREDITFLOW_DB_PASSWORD:?Configure CREDITFLOW_DB_PASSWORD no arquivo .env}
       SESSION_DRIVER: file
       CACHE_STORE: file
       QUEUE_CONNECTION: sync
@@ -45,7 +45,7 @@ services:
     environment:
       POSTGRES_DB: creditflow
       POSTGRES_USER: creditflow
-      POSTGRES_PASSWORD: creditflow_local
+      POSTGRES_PASSWORD: ${CREDITFLOW_DB_PASSWORD:?Configure CREDITFLOW_DB_PASSWORD no arquivo .env}
     volumes:
       - creditflow_postgres_data:/var/lib/postgresql/data
     healthcheck:
