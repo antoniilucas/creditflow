@@ -152,6 +152,20 @@ Os testes automatizados cobrem autenticacao, criacao da conta, saldo, idempotenc
 debito insuficiente, estorno, extrato, filtros e isolamento entre usuarios. A API
 local continua usando PostgreSQL.
 
+## Frontend Vue
+
+O frontend Vue roda em um container separado e encaminha as chamadas `/api` para o
+servico Laravel. Com os servicos `app` e `db` ativos, inicie a interface:
+
+```bat
+docker compose up -d frontend
+```
+
+Abra `http://localhost:5173`. Crie uma conta ou entre com um usuario cadastrado na
+API. A tela permite consultar o saldo, registrar creditos e debitos em centavos,
+filtrar e paginar o extrato e solicitar estornos. O frontend guarda o token Bearer
+no armazenamento local do navegador; sair remove esse token.
+
 Para conferir o bloqueio de concorrencia no PostgreSQL, deixe R$ 10,00 na conta e
 envie ao mesmo tempo dois debitos de R$ 8,00 com chaves diferentes. Um deve retornar
 `201`, o outro `422`, e o saldo final deve ser R$ 2,00.
