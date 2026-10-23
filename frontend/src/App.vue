@@ -49,7 +49,11 @@ function clearMessages() {
 
 function showError(error) {
   if (error.status === 401) {
-    logout('Sua sessão expirou. Entre novamente.')
+    if (token.value) {
+      logout('Sua sessão expirou. Entre novamente.')
+    } else {
+      pageError.value = error.message || 'E-mail ou senha inválidos.'
+    }
     return
   }
 
